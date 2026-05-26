@@ -1,90 +1,269 @@
-import { MessageSquare, User, LayoutDashboard, Route, Settings, HelpCircle, Zap, Users, LogOut } from "lucide-react"
-import { NavLink, useNavigate } from "react-router-dom"
+import {
+  User,
+  LayoutDashboard,
+  LogOut,
+  Menu,
+  X
+} from "lucide-react"
 
-import { signOut } from "firebase/auth"
-import { auth } from "../services/firebase"
+import {
+  NavLink,
+  useNavigate
+} from "react-router-dom"
 
-// simple className helper (pengganti cn dari TS project)
+import {
+  signOut
+} from "firebase/auth"
+
+import {
+  auth
+} from "../services/firebase"
+
+import {
+  useState,
+  useEffect
+} from "react"
+
 function cn(...classes) {
   return classes.filter(Boolean).join(" ")
 }
 
 const navItems = [
-  { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
-  // { icon: MessageSquare, label: "Home", path: "/" },
-  { icon: User, label: "Profile", path: "/profile" },
-  // { icon: Route, label: "Learning Path", path: "/learning-path" },
-  // { icon: Users, label: "Mentors", path: "/mentors" },
+  {
+    icon: LayoutDashboard,
+    label: "Dashboard",
+    path: "/dashboard",
+  },
+  {
+    icon: User,
+    label: "Profile",
+    path: "/profile",
+  },
 ]
 
 function Sidebar() {
-  const navigate = useNavigate();
+
+  const navigate = useNavigate()
+
+  // desktop default buka
+  const [isOpen, setIsOpen] =
+    useState(window.innerWidth >= 768)
+
+  // auto adjust resize
+  useEffect(() => {
+
+    const handleResize = () => {
+
+      if (window.innerWidth >= 768) {
+        setIsOpen(true)
+      } else {
+        setIsOpen(false)
+      }
+    }
+
+    window.addEventListener(
+      "resize",
+      handleResize
+    )
+
+    return () =>
+      window.removeEventListener(
+        "resize",
+        handleResize
+      )
+
+  }, [])
 
   const handleLogout = async () => {
+
     try {
-      // Logout Firebase
-      await signOut(auth);
 
-      // Hapus local storage
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
+      await signOut(auth)
 
-      // Redirect login
-      navigate("/login");
+      localStorage.removeItem("token")
+      localStorage.removeItem("user")
+
+      navigate("/login")
 
     } catch (error) {
-      console.error("Logout Error:", error);
+
+      console.error(
+        "Logout Error:",
+        error
+      )
     }
-  };
+  }
+
   return (
-    <aside className="h-screen w-64 fixed left-0 top-0 bg-slate-100 dark:bg-slate-950 flex flex-col py-8 z-50">
+    <>
+      {/* TOGGLE BUTTON */}
+      <button
+        onClick={() =>
+          setIsOpen(!isOpen)
+        }
+        className="
+          fixed top-4 left-4 z-[70]
+          bg-white
+          border border-slate-200
+          shadow-lg
+          rounded-xl
+          p-3
+          hover:bg-slate-50
+          transition-all
+        "
+      >
 
-      {/* Logo */}
-      <div className="px-8 mb-12">
-        <h1 className="text-xl font-black text-indigo-600 dark:text-indigo-400">
-          SkillsGap
-        </h1>
-        <p className="text-[10px] tracking-[0.2em] uppercase text-slate-500 mt-1">
-          AI Career Navigator
-        </p>
-      </div>
+        {isOpen ? (
+          <X className="w-5 h-5" />
+        ) : (
+          <Menu className="w-5 h-5" />
+        )}
 
-      {/* Menu */}
-      <nav className="flex-1 space-y-2">
-        {navItems.map((item) => (
-          <NavLink
-            key={item.path}
-            to={item.path}
-            className={({ isActive }) =>
-              cn(
-                "flex items-center space-x-4 px-6 py-3 text-slate-500 dark:text-slate-400 hover:translate-x-1 hover:text-indigo-500 transition-all duration-200",
-                isActive && "bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-300 rounded-r-full shadow-sm font-bold"
-              )
-            }
+      </button>
+
+      {/* OVERLAY MOBILE */}
+      {isOpen && window.innerWidth < 768 && (
+        <div
+          onClick={() =>
+            setIsOpen(false)
+          }
+          className="
+            fixed inset-0
+            bg-black/40
+            z-40
+          "
+        />
+      )}
+
+      {/* SIDEBAR */}
+      <aside
+        className={cn(
+          `
+          fixed top-0 left-0 z-50
+          h-screen w-64
+          bg-slate-950
+          flex flex-col py-8
+          transition-all duration-300
+          `,
+          isOpen
+            ? "translate-x-0"
+            : "-translate-x-full"
+        )}
+      >
+
+        {/* LOGO */}
+        <div className="px-8 mb-12 mt-10">
+
+          <h1 className="
+            text-xl font-black
+            text-indigo-500
+          ">
+            SkillsGap
+          </h1>
+
+          <p className="
+            text-[10px]
+            tracking-[0.2em]
+            uppercase
+            text-slate-500
+            mt-1
+          ">
+            AI Career Navigator
+          </p>
+
+        </div>
+
+        {/* MENU */}
+        <nav className="flex-1 space-y-2">
+
+          {navItems.map((item) => (
+
+            <NavLink
+              key={item.path}
+              to={item.path}
+              onClick={() => {
+
+                if (
+                  window.innerWidth < 768
+                ) {
+                  setIsOpen(false)
+                }
+              }}
+              className={({
+                isActive,
+              }) =>
+                cn(
+                  `
+                  flex items-center
+                  space-x-4
+                  px-6 py-3
+                  text-slate-400
+                  hover:text-indigo-400
+                  hover:bg-slate-900
+                  transition-all
+                  `,
+                  isActive &&
+                    `
+                    bg-slate-900
+                    text-indigo-400
+                    rounded-r-full
+                    font-bold
+                    `
+                )
+              }
+            >
+
+              <item.icon className="w-5 h-5" />
+
+              <span className="
+                tracking-wide
+                text-xs
+                uppercase
+              ">
+                {item.label}
+              </span>
+
+            </NavLink>
+          ))}
+        </nav>
+
+        {/* LOGOUT */}
+        <div className="
+          mt-auto
+          border-t
+          border-slate-800
+          pt-6
+        ">
+
+          <button
+            onClick={handleLogout}
+            className="
+              w-full
+              flex items-center
+              space-x-4
+              px-6 py-3
+              text-slate-400
+              hover:text-red-400
+              hover:bg-slate-900
+              transition-all
+            "
           >
-            <item.icon className="w-5 h-5" />
-            <span className="tracking-wide text-xs uppercase">{item.label}</span>
-          </NavLink>
-        ))}
-      </nav>
 
-      {/* Bottom Menu */}
-      <div className="mt-auto border-t border-slate-200/50 pt-6">
+            <LogOut className="w-5 h-5" />
 
-        <button
-          onClick={handleLogout}
-          className="w-full flex items-center space-x-4 px-6 py-3 text-slate-500 dark:text-slate-400 hover:translate-x-1 hover:text-red-500 transition-all duration-200"
-        >
-          <LogOut className="w-5 h-5" />
+            <span className="
+              tracking-wide
+              text-xs
+              uppercase
+            ">
+              Logout
+            </span>
 
-          <span className="tracking-wide text-xs uppercase">
-            Logout
-          </span>
-        </button>
+          </button>
 
-      </div>
-
-    </aside>
+        </div>
+      </aside>
+    </>
   )
 }
 
