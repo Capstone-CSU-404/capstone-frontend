@@ -12,11 +12,35 @@ export const getJobRecommendation = async (
   return response.data
 }
 
-export const uploadCV = async (file) => {
+export const uploadCV = async ({
+  file,
+  skills,
+  name,
+}) => {
 
   const formData = new FormData()
 
-  formData.append("file", file)
+  // ================= FILE =================
+  formData.append(
+    "file",
+    file
+  )
+
+  // ================= EXTRA DATA =================
+  formData.append(
+    "skillset",
+    JSON.stringify(skills || [])
+  )
+
+  formData.append(
+    "name",
+    name || "Anonymous"
+  )
+
+  formData.append(
+    "documentType",
+    "cv"
+  )
 
   const response = await api.post(
     "/document/upload",
@@ -29,6 +53,10 @@ export const uploadCV = async (file) => {
     }
   )
 
-  console.log("response kiye su :", response.data)
+  console.log(
+    "Combined AI response:",
+    response.data
+  )
+
   return response.data
 }
