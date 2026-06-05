@@ -31,6 +31,7 @@ function Sidebar({ isOpen, setIsOpen }) {
       await signOut(auth)
       localStorage.removeItem("token")
       localStorage.removeItem("user")
+      sessionStorage.clear();
       navigate("/login")
     } catch (error) {
       console.error("Logout Error:", error)
