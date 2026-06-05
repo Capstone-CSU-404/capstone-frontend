@@ -1,4 +1,4 @@
-import { X, TrendingUp } from "lucide-react"
+import { X } from "lucide-react"
 
 const SkillBadge = ({
   skills = [],
@@ -8,16 +8,12 @@ const SkillBadge = ({
 
   return (
     <div className="flex flex-wrap gap-2">
-
       {skills.map((skill, index) => {
+        // Ambil string nama skill dengan aman
+        const skillName = ai ? skill?.skill : skill
 
-        const skillName = ai
-          ? skill.skill
-          : skill
-
-        const confidence = ai
-          ? skill.confidence
-          : null
+        // Guard clause jika skillName ternyata kosong/null agar tidak merender badge kosong
+        if (!skillName) return null
 
         return (
           <div
@@ -31,32 +27,15 @@ const SkillBadge = ({
               max-w-full
             "
           >
-
-            <span className="truncate capitalize">
-              {skillName}
+            {/* Menggunakan uppercase untuk singkatan tech (SQL, AWS, etc) agar lebih rapi */}
+            <span className="truncate uppercase-tech-check">
+              {skillName.length <= 3 ? skillName.toUpperCase() : skillName.charAt(0).toUpperCase() + skillName.slice(1)}
             </span>
-
-            {ai && (
-              <span className="
-                flex items-center gap-1
-                text-[10px]
-                bg-white/70
-                px-1.5 py-0.5
-                rounded-full
-              ">
-
-                <TrendingUp className="w-3 h-3" />
-
-                {(confidence * 100).toFixed(0)}%
-              </span>
-            )}
 
             {!ai && (
               <button
                 type="button"
-                onClick={() =>
-                  handleRemoveSkill(skill)
-                }
+                onClick={() => handleRemoveSkill(skill)}
                 className="
                   hover:text-red-500
                   transition-colors
