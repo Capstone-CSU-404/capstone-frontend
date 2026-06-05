@@ -33,7 +33,7 @@ const Login = () => {
       const idToken = await user.getIdToken();
 
       const response = await api.post("/auth/google", { idToken });
-      console.log("Response dari Backend:", response.data);
+    
 
       const { tokens, user: backendUser } = response.data.data;
 
