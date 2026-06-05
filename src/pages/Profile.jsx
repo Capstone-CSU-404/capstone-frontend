@@ -1,155 +1,123 @@
-import { Edit2, MapPin, Mail, Link as LinkIcon, Award, School, ArrowRight } from "lucide-react"
-const storedUser = JSON.parse(
-  localStorage.getItem("user")
-);
-
-const user = storedUser?.data?.user;
-// helper cn
-function cn(...classes) {
-  return classes.filter(Boolean).join(" ")
-}
+import React, { useState, useEffect } from "react";
+import { Mail, Code2, Loader2 } from "lucide-react";
+import api from "../services/api";
 
 function Profile() {
-  return (
-    <div className="space-y-10">
+  const [profileData, setProfileData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-      {/* HEADER */}
-      <section className="bg-white rounded-2xl p-6 flex flex-col md:flex-row items-center gap-6 shadow-sm">
-        
-        {/* Avatar */}
-        <div className="relative">
+  // Ambil data user dasar dari localStorage untuk fallback header
+  const storedUser = JSON.parse(localStorage.getItem("user"));
+  const userAuth = storedUser?.user || storedUser;
+
+  useEffect(() => {
+    const fetchProfileData = async () => {
+      try {
+        setIsLoading(true);
+        // Tembak endpoint profile ke Backend Express kamu
+        const response = await api.get("/auth/profile"); 
+        setProfileData(response.data.data || response.data);
+      } catch (error) {
+        console.error("Gagal memuat data CV/Profile:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProfileData();
+  }, []);
+
+  const user = profileData?.user || userAuth;
+  // Menampung array skills hasil ekstraksi dari database nantinya
+  const extractedSkills = profileData?.skills || ["React", "UI/UX", "AI Tools", "Tailwind", "Node.js", "Express", "PostgreSQL"];
+
+  // Loading Screen (Skeleton/Spinner)
+  if (isLoading) {
+    return (
+      <div className="min-h-[50vh] flex flex-col items-center justify-center gap-2">
+        <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
+        <p className="text-sm text-slate-500 font-medium">Loading your profile...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-8 max-w-5xl mx-auto">
+      
+      {/* HEADER PROFILE (MINIMALIS) */}
+      <section className="bg-white rounded-2xl p-8 flex flex-col sm:flex-row items-center gap-6 shadow-sm border border-slate-100">
+        {/* Avatar (Tombol pensil sudah dihapus) */}
+        <div className="relative shrink-0">
           <img
-            src={user?.picture}
-            className="w-28 h-28 rounded-xl object-cover"
+            src={user?.picture || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150"}
+            className="w-24 h-24 rounded-2xl object-cover ring-4 ring-indigo-50"
+            alt="Profile Avatar"
           />
-          <button className="absolute -bottom-2 -right-2 p-2 bg-indigo-500 text-white rounded-lg">
-            <Edit2 className="w-4 h-4" />
-          </button>
         </div>
 
-        {/* Info */}
-        <div className="flex-1">
-          <h2 className="text-2xl font-bold">{user?.name}</h2>
-          <p className="text-indigo-500 text-sm">
-            Senior UX Architect & AI Strategist
-          </p>
-
-          <div className="flex flex-wrap gap-4 mt-3 text-sm text-slate-500">
-            <div className="flex items-center gap-1">
-              <MapPin className="w-4 h-4" /> San Francisco
-            </div>
-            <div className="flex items-center gap-1">
-              <Mail className="w-4 h-4" /> {user?.email}
-            </div>
-            <div className="flex items-center gap-1">
-              <LinkIcon className="w-4 h-4" /> portfolio.com
-            </div>
+        {/* Info Nama & Email (Role, Lokasi, dan Portofolio sudah dihapus) */}
+        <div className="flex-1 text-center sm:text-left space-y-2">
+          <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">{user?.name}</h2>
+          <div className="flex items-center justify-center sm:justify-start gap-2 text-sm text-slate-500">
+            <Mail className="w-4 h-4 text-indigo-500" /> 
+            <span>{user?.email}</span>
           </div>
         </div>
       </section>
 
-      {/* GRID */}
-      <div className="grid grid-cols-12 gap-6">
-
-        {/* LEFT */}
-        <div className="col-span-12 md:col-span-5 space-y-6">
-
-          {/* SKILLS */}
-          <div className="bg-white p-6 rounded-xl shadow-sm">
-            <h3 className="font-bold mb-4">Skills</h3>
-
-            <div className="flex flex-wrap gap-2">
-              {["React", "UI/UX", "AI Tools", "Tailwind"].map((s, i) => (
-                <span
-                  key={i}
-                  className="px-3 py-1 text-xs bg-indigo-100 text-indigo-600 rounded-full"
-                >
-                  {s}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          {/* CERT */}
-          <div className="bg-white p-6 rounded-xl shadow-sm">
-            <h3 className="font-bold mb-4">Certifications</h3>
-
-            {[
-              "Google UX Design",
-              "AWS Cloud Practitioner",
-            ].map((c, i) => (
-              <div key={i} className="flex items-center gap-3 mb-3">
-                <Award className="w-4 h-4 text-indigo-500" />
-                <span className="text-sm">{c}</span>
-              </div>
-            ))}
-          </div>
+      {/* SKILLS CONTAINER (Diubah menjadi layout Grid Card yang penuh & estetik) */}
+      <section className="space-y-4">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+            <Code2 className="w-5 h-5 text-indigo-500" />
+            <span>Extracted Core Skills</span>
+          </h3>
+          <span className="text-xs font-semibold bg-indigo-50 text-indigo-600 px-2.5 py-1 rounded-full">
+            Total {extractedSkills.length} Skills
+          </span>
         </div>
 
-        {/* RIGHT */}
-        <div className="col-span-12 md:col-span-7 space-y-6">
-
-          {/* EXPERIENCE */}
-          <div className="bg-white p-6 rounded-xl shadow-sm">
-            <h3 className="font-bold mb-4">Experience</h3>
-
-            <div className="space-y-4">
-              {[
-                {
-                  role: "UX Designer",
-                  company: "Tech Corp",
-                },
-                {
-                  role: "Product Designer",
-                  company: "Startup Inc",
-                },
-              ].map((exp, i) => (
-                <div key={i}>
-                  <p className="font-semibold">{exp.role}</p>
-                  <p className="text-sm text-slate-500">
-                    {exp.company}
+        {/* Grid System untuk mengubah badge menjadi Card */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+          {extractedSkills.length > 0 ? (
+            extractedSkills.map((skill, i) => {
+              const skillName = typeof skill === "object" ? skill.name : skill;
+              return (
+                <div 
+                  key={i} 
+                  className="bg-white border border-slate-100 p-5 rounded-2xl shadow-sm hover:shadow-md hover:border-indigo-200 hover:-translate-y-0.5 transition-all duration-200 flex flex-col justify-between group"
+                >
+                  <div className="space-y-1">
+                    <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-xs group-hover:bg-indigo-500 group-hover:text-white transition-colors duration-200">
+                      {skillName.substring(0, 2).toUpperCase()}
+                    </div>
+                    <h4 className="font-bold text-slate-800 text-sm pt-2 truncate">
+                      {skillName}
+                    </h4>
+                  </div>
+                  <p className="text-[10px] text-slate-400 mt-3 uppercase tracking-wider font-medium">
+                    Verified Skill
                   </p>
                 </div>
-              ))}
+              );
+            })
+          ) : (
+            <div className="col-span-full bg-slate-50 border border-dashed border-slate-200 p-8 rounded-2xl text-center">
+              <p className="text-sm text-slate-400 italic">
+                No skills extracted yet. Please upload your CV on the dashboard.
+              </p>
             </div>
-          </div>
-
-          {/* EDUCATION */}
-          <div className="bg-white p-6 rounded-xl shadow-sm">
-            <h3 className="font-bold mb-4">Education</h3>
-
-            {[
-              "Stanford University",
-              "MIT",
-            ].map((edu, i) => (
-              <div key={i} className="flex items-center gap-2 mb-3">
-                <School className="w-4 h-4 text-indigo-500" />
-                <span className="text-sm">{edu}</span>
-              </div>
-            ))}
-          </div>
+          )}
         </div>
-      </div>
-
-      {/* PROGRESS */}
-      <section className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white p-6 rounded-xl">
-        <h3 className="font-bold text-lg mb-2">
-          Learning Progress
-        </h3>
-        <p className="text-sm opacity-80 mb-4">
-          You're 75% complete 🚀
-        </p>
-
-        <div className="w-full h-2 bg-white/30 rounded-full">
-          <div className="w-[75%] h-full bg-white rounded-full"></div>
-        </div>
-
-        <button className="mt-4 flex items-center gap-1 text-sm">
-          Continue <ArrowRight className="w-4 h-4" />
-        </button>
       </section>
+
+      {/* FOOTER */}
+      <footer className="text-center text-[11px] text-slate-400 pt-8 border-t border-slate-100">
+        © 2026 SkillsGap AI Platform
+      </footer>
+
     </div>
-  )
+  );
 }
 
-export default Profile
+export default Profile;

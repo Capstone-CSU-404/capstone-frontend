@@ -47,52 +47,75 @@ function Dashboard() {
   )
   const user = storedUser?.data?.user
 
-  // ================= STATE =================
-  const [fileName, setFileName] = useState("")
-  const [skills, setSkills] = useState([])
+  // ================= STATE (Inisialisasi dari sessionStorage jika tersedia) =================
+  const [fileName, setFileName] = useState(() => sessionStorage.getItem("dashboard_fileName") || "")
+  const [skills, setSkills] = useState(() => JSON.parse(sessionStorage.getItem("dashboard_skills")) || [])
   const [newSkill, setNewSkill] = useState("")
   const [loading, setLoading] = useState(false)
-  const [recommendations, setRecommendations] = useState([])
+  const [recommendations, setRecommendations] = useState(() => JSON.parse(sessionStorage.getItem("dashboard_recommendations")) || [])
   const [selectedFile, setSelectedFile] = useState(null)
-  const [showMore, setShowMore] = useState(false)
-  
-  // State baru untuk menampung seluruh extracted_skills dari BE
-  const [extractedSkills, setExtractedSkills] = useState([])
-  const [narrativeText, setNarrativeText] = useState("")
+  const [showMore, setShowMore] = useState(() => JSON.parse(sessionStorage.getItem("dashboard_showMore")) || false)
+  const [extractedSkills, setExtractedSkills] = useState(() => JSON.parse(sessionStorage.getItem("dashboard_extractedSkills")) || [])
+  const [narrativeText, setNarrativeText] = useState(() => sessionStorage.getItem("dashboard_narrativeText") || "")
 
   const resultRef = useRef(null)
 
   const topRole = recommendations[0]
   const otherRoles = recommendations.slice(1)
 
-  // Efek pendeteksi data masuk
+  // ================= EFFECTS FOR SESSION PERSISTENCE =================
+  // Efek untuk menyimpan perubahan state Input ke sessionStorage
+  useEffect(() => {
+    sessionStorage.setItem("dashboard_skills", JSON.stringify(skills));
+  }, [skills]);
+
+  useEffect(() => {
+    sessionStorage.setItem("dashboard_fileName", fileName);
+  }, [fileName]);
+
+  // Efek untuk menyimpan perubahan state Hasil AI ke sessionStorage
+  useEffect(() => {
+    sessionStorage.setItem("dashboard_recommendations", JSON.stringify(recommendations));
+    sessionStorage.setItem("dashboard_extractedSkills", JSON.stringify(extractedSkills));
+    sessionStorage.setItem("dashboard_showMore", JSON.stringify(showMore));
+  }, [recommendations, extractedSkills, showMore]);
+
+  useEffect(() => {
+    sessionStorage.setItem("dashboard_narrativeText", narrativeText);
+  }, [narrativeText]);
+
+
+  // Efek pendeteksi data masuk & pembentuk narasi
   useEffect(() => {
     if (recommendations.length > 0) {
-      if (resultRef.current) {
+      // Hanya jalankan auto-scroll jika narasi belum terbentuk (menandakan ini hasil klik tombol baru, bukan reload page)
+      if (resultRef.current && !narrativeText) {
         resultRef.current.scrollIntoView({
           behavior: "smooth",
           block: "start",
         })
       }
 
-      // Ambil teks nama-nama skill yang dimiliki user untuk dimasukkan ke teks narasi
-      const ownedSkillNames = recommendations[0].user_skill
-        ?.map((s) => s.skill)
-        .join(", ")
+      // Jika teks narasi belum ada di session, susun narasi baru yang profesional
+      if (!narrativeText) {
+        const ownedSkillNames = recommendations[0].user_skill
+          ?.map((s) => s.skill)
+          .join(", ")
 
-      // Set susunan narasi baru yang profesional
-      setNarrativeText(
-        `Career path yang paling direkomendasikan untukmu saat ini adalah ${recommendations[0].role}. Kamu sudah memiliki modal dasar yang bagus dengan menguasai skill seperti ${ownedSkillNames}. Untuk memperkecil gap dan mempercepat langkahmu menjadi seorang ${recommendations[0].role}, berikut adalah beberapa skill prioritas yang disarankan untuk kamu pelajari berikutnya:`
-      )
+        setNarrativeText(
+          `Career path yang paling direkomendasikan untukmu saat ini adalah ${recommendations[0].role}. Kamu sudah memiliki modal dasar yang bagus dengan menguasai skill seperti ${ownedSkillNames}. Untuk memperkecil gap dan mempercepat langkahmu menjadi seorang ${recommendations[0].role}, berikut adalah beberapa skill prioritas yang disarankan untuk kamu pelajari berikutnya:`
+        )
+      }
     } else {
       setShowMore(false)
       setNarrativeText("")
     }
-  }, [recommendations])
+  }, [recommendations, narrativeText])
 
   const handleRemoveFile = () => {
     setSelectedFile(null)
     setFileName("")
+    sessionStorage.removeItem("dashboard_fileName")
   }
 
   const handleFileChange = (e) => {
@@ -132,6 +155,7 @@ function Dashboard() {
     try {
       setLoading(true)
       setShowMore(false)
+      setNarrativeText("") // Reset teks narasi agar trigger efek mengetik ulang untuk hasil pencarian baru
 
       let responseData;
       if (selectedFile) {
@@ -148,7 +172,6 @@ function Dashboard() {
         responseData = await getJobRecommendation(payload)
       }
 
-      // Simpan extracted_skills global dan list top_roles ke state masing-masing
       setExtractedSkills(responseData?.extracted_skills || [])
       setRecommendations(responseData?.top_roles || [])
 
@@ -174,13 +197,13 @@ function Dashboard() {
           </p>
         </div>
 
-        <Link
+        {/* <Link
           to="/chat"
           className="bg-white border px-4 py-2 rounded-xl flex items-center gap-2 shadow-sm hover:bg-indigo-50 transition-all w-fit"
         >
           <Sparkles className="w-4 h-4 text-indigo-500" />
           <span className="text-sm">AI Assistant</span>
-        </Link>
+        </Link> */}
       </header>
 
       {/* CONTENT */}
@@ -213,7 +236,7 @@ function Dashboard() {
               </p>
             </div>
 
-            {/* BOX EXTRACTED SKILLS (Menampilkan seluruh isi extracted_skills global) */}
+            {/* BOX EXTRACTED SKILLS */}
             {extractedSkills.length > 0 && (
               <div className="bg-slate-50 border border-slate-100 rounded-2xl p-5">
                 <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">
@@ -254,7 +277,7 @@ function Dashboard() {
                   <span className="inline-block w-1 h-4 bg-indigo-500 ml-1 animate-pulse" />
                 </p>
 
-                {/* Badges Skill Rekomendasi yang Perlu Dipelajari */}
+                {/* Badges Skill Rekomendasi */}
                 <div className="flex-1 mb-6">
                   <SkillBadge
                     skills={topRole.recommended_skill_to_learn?.slice(0, 10) || []}

@@ -53,13 +53,13 @@ function TopBar({ isOpen, setIsOpen }) {
       {/* Right section */}
       <div className="flex items-center space-x-3 md:space-x-4">
 
-        {/* AI Feature */}
+        {/* AI Feature
         <Link
           to="/chat"
           className="p-2 hover:bg-slate-200/50 rounded-full transition-all"
         >
           <Sparkles className="w-4 h-4 text-indigo-500" />
-        </Link>
+        </Link> */}
 
         {/* Logout */}
         <button
