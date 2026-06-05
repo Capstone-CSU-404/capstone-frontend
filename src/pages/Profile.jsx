@@ -5,7 +5,7 @@ import api from "../services/api";
 
 function Profile() {
   const location = useLocation(); // Untuk memicu render ulang saat pindah halaman
-  const [profileData, setProfileData] = useState(null);
+  const [skills, setSkills] = useState([]);
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -15,39 +15,33 @@ function Profile() {
     const userData = storedUser?.data?.user || storedUser?.user || storedUser;
     setUser(userData);
 
-    const fetchProfileData = async () => {
+    const fetchSkillsetData = async () => {
       try {
         setIsLoading(true);
-        // 2. Ambil data dinamis (skills) dari Backend
-        const response = await api.get("/auth/profile"); 
-        setProfileData(response.data.data || response.data);
+        // 2. HIT ENDPOINT BARU DARI BACKEND
+        const response = await api.get("/profile/skillset"); 
+        
+        // Sesuaikan dengan struktur response JSON backend: response.data.data.skills
+        if (response.data && response.data.data && response.data.data.skills) {
+          setSkills(response.data.data.skills);
+        } else {
+          setSkills([]);
+        }
       } catch (error) {
-        console.error("Gagal memuat data CV/Profile:", error);
+        console.error("Gagal memuat data Skillset dari BE:", error);
+        setSkills([]); // Amankan dengan array kosong jika request gagal
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchProfileData();
-  }, [location]); // 🚀 Berjalan otomatis setiap kali pindah ke halaman profile
-
-  // Menampung array skills hasil ekstraksi dari database nantinya
-  const extractedSkills = profileData?.skills || ["React", "UI/UX", "AI Tools", "Tailwind", "Node.js", "Express", "PostgreSQL"];
-
-  // Loading Screen (Skeleton/Spinner)
-  if (isLoading) {
-    return (
-      <div className="min-h-[50vh] flex flex-col items-center justify-center gap-2">
-        <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
-        <p className="text-sm text-slate-500 font-medium">Loading your profile...</p>
-      </div>
-    );
-  }
+    fetchSkillsetData();
+  }, [location]); // Berjalan otomatis setiap kali pindah ke halaman profile
 
   return (
     <div className="space-y-8 max-w-5xl mx-auto">
       
-      {/* HEADER PROFILE (MINIMALIS & SEGERA MUNCUL) */}
+      {/* HEADER PROFILE */}
       <section className="bg-white rounded-2xl p-8 flex flex-col sm:flex-row items-center gap-6 shadow-sm border border-slate-100">
         {/* Avatar */}
         <div className="relative shrink-0">
@@ -78,47 +72,60 @@ function Profile() {
             <span>Extracted Core Skills</span>
           </h3>
           <span className="text-xs font-semibold bg-indigo-50 text-indigo-600 px-2.5 py-1 rounded-full">
-            Total {extractedSkills.length} Skills
+            Total {skills.length} Skills
           </span>
         </div>
 
-        {/* Grid System */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-          {extractedSkills.length > 0 ? (
-            extractedSkills.map((skill, i) => {
-              const skillName = typeof skill === "object" ? skill.name : skill;
-              return (
-                <div 
-                  key={i} 
-                  className="bg-white border border-slate-100 p-5 rounded-2xl shadow-sm hover:shadow-md hover:border-indigo-200 hover:-translate-y-0.5 transition-all duration-200 flex flex-col justify-between group"
-                >
-                  <div className="space-y-1">
-                    <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-xs group-hover:bg-indigo-500 group-hover:text-white transition-colors duration-200">
-                      {skillName.substring(0, 2).toUpperCase()}
+        {/* Loading State Spinner Dalam Section Card */}
+        {isLoading ? (
+          <div className="min-h-[200px] flex flex-col items-center justify-center gap-2 bg-slate-50/50 rounded-2xl border border-slate-100">
+            <Loader2 className="w-7 h-7 animate-spin text-indigo-500" />
+            <p className="text-xs text-slate-500 font-medium">Fetching skills from server...</p>
+          </div>
+        ) : (
+          /* Grid System */
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+            {skills.length > 0 ? (
+              skills.map((skill, i) => {
+                const skillName = typeof skill === "object" ? skill.name : skill;
+                return (
+                  <div 
+                    key={i} 
+                    className="bg-white border border-slate-100 p-5 rounded-2xl shadow-sm hover:shadow-md hover:border-indigo-200 hover:-translate-y-0.5 transition-all duration-200 flex flex-col justify-between group"
+                  >
+                    <div className="space-y-1">
+                      <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-xs group-hover:bg-indigo-500 group-hover:text-white transition-colors duration-200">
+                        {skillName.substring(0, 2).toUpperCase()}
+                      </div>
+                      <h4 className="font-bold text-slate-800 text-sm pt-2 truncate" title={skillName}>
+                        {skillName}
+                      </h4>
                     </div>
-                    <h4 className="font-bold text-slate-800 text-sm pt-2 truncate">
-                      {skillName}
-                    </h4>
+                    <p className="text-[10px] text-slate-400 mt-3 uppercase tracking-wider font-medium">
+                      Verified Skill
+                    </p>
                   </div>
-                  <p className="text-[10px] text-slate-400 mt-3 uppercase tracking-wider font-medium">
-                    Verified Skill
-                  </p>
+                );
+              })
+            ) : (
+              /* Tampilan Jika Array Kosong [] */
+              <div className="col-span-full bg-white border border-dashed border-slate-200 p-12 rounded-2xl text-center shadow-sm">
+                <div className="w-10 h-10 bg-slate-50 text-slate-400 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <Code2 className="w-5 h-5" />
                 </div>
-              );
-            })
-          ) : (
-            <div className="col-span-full bg-slate-50 border border-dashed border-slate-200 p-8 rounded-2xl text-center">
-              <p className="text-sm text-slate-400 italic">
-                No skills extracted yet. Please upload your CV on the dashboard.
-              </p>
-            </div>
-          )}
-        </div>
+                <p className="text-sm text-slate-700 font-bold">Belum ada skill yang terdeteksi</p>
+                <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
+                  Silakan upload dokumen atau resume CV terbaru kamu di Dashboard terlebih dahulu untuk menganalisis skillset.
+                </p>
+              </div>
+            )}
+          </div>
+        )}
       </section>
 
       {/* FOOTER */}
       <footer className="text-center text-[11px] text-slate-400 pt-8 border-t border-slate-100">
-        © 2026 SkillsGap AI Platform
+        © 2026 AI Skill & Career Pathway Analyzer
       </footer>
 
     </div>
