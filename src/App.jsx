@@ -6,6 +6,8 @@ import Dashboard from "./pages/Dashboard";
 import Chat from "./pages/Chat";
 import Profile from "./pages/Profile";
 import Login from "./pages/Login";
+import History from "./pages/History"; 
+import Sidebar from "./components/Sidebar"; 
 
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 
@@ -29,6 +31,7 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/chat" element={<Chat />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/history" element={<History />} />
         </Route>
 
       </Routes>

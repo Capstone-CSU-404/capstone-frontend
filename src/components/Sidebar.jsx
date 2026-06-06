@@ -1,4 +1,4 @@
-import { User, LayoutDashboard, LogOut, X } from "lucide-react"
+import { User, LayoutDashboard, LogOut, X, Clock } from "lucide-react" // 1. IMPORT CLOCK ICON DI SINI 👈
 import { NavLink, useNavigate } from "react-router-dom"
 import { signOut } from "firebase/auth"
 import { auth } from "../services/firebase"
@@ -7,8 +7,10 @@ function cn(...classes) {
   return classes.filter(Boolean).join(" ")
 }
 
+// 2. TAMBAHKAN PATH MENU HISTORY DI DALAM ARRAY NAVITEMS 👈
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
+  { icon: Clock, label: "History", path: "/history" },
   { icon: User, label: "Profile", path: "/profile" },
 ]
 

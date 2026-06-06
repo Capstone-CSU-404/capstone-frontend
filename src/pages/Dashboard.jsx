@@ -193,8 +193,6 @@ function Dashboard() {
 
   const handleAnalyze = async () => {
     try {
-      // JANGAN bersihkan extractedSkills jika user tidak mengupload file baru,
-      // supaya kita bisa menggunakan data history resume sebelumnya.
       if (selectedFile) {
         setExtractedSkills([]);
       }
@@ -221,23 +219,32 @@ function Dashboard() {
         }
       }
 
-      // 2. TENTUKAN PAYLOAD SKILL GABUNGAN
-      // Jika ada file baru, gabungkan array input skills dasar + completed pathway.
-      // Jika TIDAK ada file baru (pindah page), gabungkan data resume lama (extractedSkills) + completed pathway.
+      // 2. Tentukan Payload Skill Gabungan
       const baseSkills = selectedFile ? skills : extractedSkills;
       const finalSkillsPayload = [...new Set([...baseSkills, ...completedStarredSkills])];
 
       let responseData;
+
       if (selectedFile) {
-        // Jika ada file fisik baru di-upload, lakukan hit upload CV murni
+        // Jalur A: Upload CV Baru (Otomatis simpan history oleh Backend)
         responseData = await uploadCV({ file: selectedFile, skills: finalSkillsPayload, name: user?.name });
       } else {
-        // Jika tidak ada file (kasus balik dari page profile), gunakan rekomendasi berbasis total skillset gabungan
+        // Jalur B: Pindah Page & Analyze Ulang (Backend tidak simpan history secara otomatis)
         responseData = await getJobRecommendation({ name: user?.name || "Anonymous", skillset: finalSkillsPayload });
+
+        // 💡 SOLUSI FRONTLINE: Jika backend menyediakan endpoint save history manual, tembak di sini.
+        // Jika tidak ada, kamu bisa meminta teman backend untuk menyamakan logic getJobRecommendation 
+        // agar tetap mengeksekusi query INSERT ke tabel progress tracker mereka.
+        try {
+          // Contoh jika ada endpoint save history manual:
+          // await api.post('/history/progress', { userId: actualUserId, skillset: finalSkillsPayload, top_roles: responseData?.top_roles });
+
+          console.log("Analyze kedua berhasil dipicu, pastikan BE mengizinkan penulisan log dari endpoint ini.");
+        } catch (histErr) {
+          console.error("Gagal menyimpan log history manual:", histErr);
+        }
       }
 
-      // Jika response tidak mengembalikan extracted_skills (karena hit endpoint non-file), 
-      // kita tetap amankan visualnya menggunakan resume skill lama kita.
       const detectedSkills = responseData?.extracted_skills && responseData.extracted_skills.length > 0
         ? responseData.extracted_skills
         : baseSkills;
@@ -246,7 +253,6 @@ function Dashboard() {
       setExtractedSkills(detectedSkills);
       setRecommendations(recommendedRoles);
 
-      // Alur penanganan Roadmap Gap analysis tetap sama di bawah ini...
       if (recommendedRoles.length > 0) {
         const primaryRole = recommendedRoles[0];
         const totalSkillsToLearn = primaryRole.recommended_skill_to_learn || [];
