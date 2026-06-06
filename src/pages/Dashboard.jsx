@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react"
-import { Loader2, Search, Star } from "lucide-react"
+import { Loader2, Search } from "lucide-react"
 
 import { getJobRecommendation, uploadCV } from "../services/jobRole"
 import api from "../services/api"
@@ -22,7 +22,6 @@ function Dashboard() {
   const [skills, setSkills] = useState(() => JSON.parse(sessionStorage.getItem("dashboard_skills")) || [])
   const [newSkill, setNewSkill] = useState("")
   const [loading, setLoading] = useState(false)
-  const [recommendations, setRecommendations] = useState(() => JSON.parse(sessionStorage.getItem("dashboard_recommendations")) || [])
   const [selectedFile, setSelectedFile] = useState(null)
   const [extractedSkills, setExtractedSkills] = useState(() => JSON.parse(sessionStorage.getItem("dashboard_extractedSkills")) || [])
   const [narrativeText, setNarrativeText] = useState(() => sessionStorage.getItem("dashboard_narrativeText") || "")
@@ -32,7 +31,15 @@ function Dashboard() {
   const [roadmapLoading, setRoadmapLoading] = useState(false)
   const [jobRecommendations, setJobRecommendations] = useState(() => JSON.parse(sessionStorage.getItem("dashboard_jobs")) || [])
   const [jobLoading, setJobLoading] = useState(false)
-  const [pathwayCompletedSkills, setPathwayCompletedSkills] = useState([]);
+  const [pathwayCompletedSkills, setPathwayCompletedSkills] = useState([])
+
+  const [recommendations, setRecommendations] = useState(() => JSON.parse(sessionStorage.getItem("dashboard_recommendations")) || [])
+
+  // STATE UNTUK KEBUTUHAN DATA GITHUB
+  const [githubUrl, setGithubUrl] = useState(() => sessionStorage.getItem("dashboard_githubUrl") || "")
+  const [githubRecommendations, setGithubRecommendations] = useState(() => JSON.parse(sessionStorage.getItem("dashboard_githubRecommendations")) || [])
+  const [githubNarrativeText, setGithubNarrativeText] = useState(() => sessionStorage.getItem("dashboard_githubNarrativeText") || "")
+  const [githubRoadmap, setGithubRoadmap] = useState(() => JSON.parse(sessionStorage.getItem("dashboard_githubRoadmap")) || [])
 
   const resultRef = useRef(null)
   const jobRef = useRef(null)
@@ -40,11 +47,12 @@ function Dashboard() {
   const topRole = recommendations[0]
   const otherRoles = recommendations.slice(1)
 
+  const githubTopRole = githubRecommendations[0]
+  const githubOtherRoles = githubRecommendations.slice(1)
+
   const showNotification = (message, type = "success") => {
     setToast({ show: true, message, type })
-    setTimeout(() => {
-      setToast({ show: false, message: "", type: "success" })
-    }, 3000)
+    setTimeout(() => { setToast({ show: false, message: "", type: "success" }) }, 3000)
   }
 
   // ================= EFFECTS FOR PERSISTENCE =================
@@ -58,7 +66,13 @@ function Dashboard() {
   useEffect(() => { sessionStorage.setItem("dashboard_hasAnimated", JSON.stringify(hasAnimated)) }, [hasAnimated])
   useEffect(() => { sessionStorage.setItem("dashboard_roadmap", JSON.stringify(roadmap)) }, [roadmap])
   useEffect(() => { sessionStorage.setItem("dashboard_jobs", JSON.stringify(jobRecommendations)) }, [jobRecommendations])
+  
+  useEffect(() => { sessionStorage.setItem("dashboard_githubUrl", githubUrl) }, [githubUrl])
+  useEffect(() => { sessionStorage.setItem("dashboard_githubRecommendations", JSON.stringify(githubRecommendations)) }, [githubRecommendations])
+  useEffect(() => { sessionStorage.setItem("dashboard_githubNarrativeText", githubNarrativeText) }, [githubNarrativeText])
+  useEffect(() => { sessionStorage.setItem("dashboard_githubRoadmap", JSON.stringify(githubRoadmap)) }, [githubRoadmap])
 
+  // Efek Narasi CV
   useEffect(() => {
     if (recommendations.length > 0) {
       if (resultRef.current && !narrativeText) {
@@ -67,58 +81,73 @@ function Dashboard() {
       if (!narrativeText) {
         const ownedSkillNames = recommendations[0].user_skill?.map((s) => s.skill).join(", ")
         setNarrativeText(
-          `Career path yang paling direkomendasikan untukmu saat ini adalah ${recommendations[0].role}. Kamu sudah memiliki modal dasar yang bagus dengan menguasai skill seperti ${ownedSkillNames || "beberapa core skill"}. Untuk memperkecil gap dan mempercepat langkahmu menjadi seorang ${recommendations[0].role}, berikut adalah beberapa skill prioritas yang disarankan untuk kamu pelajari berikutnya:`
+          `Career path yang paling direkomendasikan untukmu berdasarkan CV saat ini adalah ${recommendations[0].role}. Kamu sudah memiliki modal dasar yang bagus dengan menguasai skill seperti ${ownedSkillNames || "beberapa core skill"}. Untuk memperkecil gap dan mempercepat langkahmu menjadi seorang ${recommendations[0].role}, berikut adalah beberapa skill prioritas yang disarankan untuk kamu pelajari berikutnya:`
         )
       }
     } else {
       setNarrativeText("")
-      setHasAnimated(false)
-      sessionStorage.removeItem("dashboard_hasAnimated")
     }
   }, [recommendations, narrativeText])
 
+  // Efek Narasi GitHub
   useEffect(() => {
-    if (narrativeText && !hasAnimated) {
-      const timer = setTimeout(() => { setHasAnimated(true) }, narrativeText.length * 12 + 500)
+    if (githubRecommendations.length > 0) {
+      if (resultRef.current && !recommendations.length && !githubNarrativeText) {
+        resultRef.current.scrollIntoView({ behavior: "smooth", block: "start" })
+      }
+      if (!githubNarrativeText) {
+        const githubOwnedSkills = githubRecommendations[0].user_skill?.map((s) => s.skill).join(", ")
+        setGithubNarrativeText(
+          `Berdasarkan isi kode Repositori GitHub kamu, peran IT yang paling potensial untukmu adalah ${githubRecommendations[0].role}. Penggunaan tech stack seperti ${githubOwnedSkills || "kumpulan pustaka kode Anda"} terdeteksi sangat baik. Berikut kompetensi gap industri yang disarankan untuk melengkapi kapasitas repositori kodingmu:`
+        )
+      }
+    } else {
+      setGithubNarrativeText("")
+    }
+  }, [githubRecommendations, githubNarrativeText, recommendations])
+
+  useEffect(() => {
+    if ((narrativeText || githubNarrativeText) && !hasAnimated) {
+      const timer = setTimeout(() => { setHasAnimated(true) }, 1000)
       return () => clearTimeout(timer)
     }
-  }, [narrativeText, hasAnimated])
+  }, [narrativeText, githubNarrativeText, hasAnimated])
 
   useEffect(() => {
     const fetchLastAnalyzedSkills = async () => {
-      const actualUserId = user?.uid || (typeof storedUser === "string" ? JSON.parse(storedUser)?.uid : storedUser?.uid);
-
-      if (actualUserId && !selectedFile) {
+      const actualUserId = user?.uid || user?.id || (typeof storedUser === "string" ? JSON.parse(storedUser)?.uid : storedUser?.uid)
+      if (actualUserId && !selectedFile && !githubUrl) {
         try {
-          // Ambil dataset skill yang terakhir kali sukses diekstrak dari resume user
-          const response = await api.get(`/profile/skillset?userId=${actualUserId}`);
+          const response = await api.get(`/profile/skillset?userId=${actualUserId}`)
           if (response.data && response.data.status === "ok") {
-            const lastSkills = response.data.data?.skills || response.data.skills || [];
-            // Set ke state dashboard agar visual resume lama tetap muncul sebelum re-analyze
-            setExtractedSkills(lastSkills);
+            const lastSkills = response.data.data?.skills || response.data.skills || []
+            setExtractedSkills(lastSkills)
           }
-        } catch (err) {
-          console.error("Gagal mengambil data histori skill resume:", err);
-        }
+        } catch (err) { console.error(err) }
       }
-    };
-
-    fetchLastAnalyzedSkills();
-  }, [selectedFile, user]); // Berjalan ulang jika user login berubah atau file baru di-upload
+    }
+    fetchLastAnalyzedSkills()
+  }, [selectedFile, githubUrl, user, storedUser])
 
   const clearPreviousResults = () => {
     setRecommendations([])
+    setGithubRecommendations([])
     setExtractedSkills([])
     setNarrativeText("")
+    setGithubNarrativeText("")
     setHasAnimated(false)
     setRoadmap([])
+    setGithubRoadmap([])
     setJobRecommendations([])
     setActiveTab("general")
     sessionStorage.removeItem("dashboard_recommendations")
+    sessionStorage.removeItem("dashboard_githubRecommendations")
     sessionStorage.removeItem("dashboard_extractedSkills")
     sessionStorage.removeItem("dashboard_narrativeText")
+    sessionStorage.removeItem("dashboard_githubNarrativeText")
     sessionStorage.removeItem("dashboard_hasAnimated")
     sessionStorage.removeItem("dashboard_roadmap")
+    sessionStorage.removeItem("dashboard_githubRoadmap")
     sessionStorage.removeItem("dashboard_jobs")
   }
 
@@ -150,199 +179,214 @@ function Dashboard() {
     setSkills(skills.filter((skill) => skill !== skillToRemove))
   }
 
-  const handleFetchRoadmap = async (skillGapsArray) => {
+  const fetchSpecificRoadmap = async (skillGapsArray) => {
     try {
-      setRoadmapLoading(true)
       const response = await api.post("/career/roadmap", { skillGaps: skillGapsArray })
-      if (response.data && response.data.success) {
-        setRoadmap(response.data.roadmap || [])
-      }
-    } catch (err) {
-      console.error("Gagal mengambil data roadmap industri:", err)
-    } finally {
-      setRoadmapLoading(false)
-    }
+      if (response.data && response.data.success) return response.data.roadmap || []
+    } catch (err) { console.error(err) }
+    return []
   }
 
-  const handleSaveSkillToPathway = async (skillName) => {
-    const actualUserId = user?.uid || (typeof storedUser === "string" ? JSON.parse(storedUser)?.uid : storedUser?.uid)
+  // 🛠️ RE-FIX: Kunci ID User langsung ke sumber mentah LocalStorage agar anti-meleset
+  const handleSaveSkillToPathway = async (skillName, targetedRole) => {
+    // Ambil ulang data mentah langsung dari localStorage saat fungsi dieksekusi
+    const rawStorage = localStorage.getItem("user");
+    const parsedStorage = rawStorage ? JSON.parse(rawStorage) : null;
+    
+    // Cari ID dengan menyisir seluruh kemungkinan hirarki struktur auth token kamu
+    const actualUserId = 
+      parsedStorage?.data?.user?.uid || 
+      parsedStorage?.data?.user?.id || 
+      parsedStorage?.user?.uid || 
+      parsedStorage?.user?.id || 
+      parsedStorage?.uid || 
+      parsedStorage?.id ||
+      user?.uid || 
+      user?.id;
+
+    // Tentukan fallback target role jika tidak terdefinisi dari parameter komponen
+    const finalRole = targetedRole || githubTopRole?.role || topRole?.role || "General Path";
+
+    console.log("=== DEBUG TRACK SKILL ===");
+    console.log("ID User Terdeteksi:", actualUserId);
+    console.log("Nama Skill:", skillName);
+    console.log("Target Role:", finalRole);
+
     if (!actualUserId) {
-      showNotification("Sesi user tidak valid. ID tidak ditemukan.", "error")
-      return
+      showNotification("Sesi user tidak valid atau kedaluwarsa. Silakan refresh atau re-login.", "error");
+      return;
     }
+
     try {
       const response = await api.post("/pathway", {
-        user_id: actualUserId,
+        user_id: actualUserId, // Format snake_case untuk backend
         skill_name: skillName,
-        target_role: topRole?.role || "General Path",
-      })
+        target_role: finalRole
+      });
+
       if (response.status === 201 || response.data?.success) {
-        showNotification(`Skill "${skillName}" berhasil disimpan ke target pembelajaran profile!`, "success")
-        try {
-          const currentSkillGaps = roadmap && roadmap.length > 0 ? roadmap.map((item) => item.skill) : [skillName]
-          await api.post("/career/roadmap", { skillGaps: currentSkillGaps })
-        } catch (roadmapErr) {
-          console.log("Abaikan jika optional:", roadmapErr)
-        }
+        showNotification(`Skill "${skillName}" berhasil disimpan ke target profil!`, "success");
+        
+        // Opsional: Perbarui state lokal agar tanda centang/bintang langsung sinkron aktif
+        setPathwayCompletedSkills(prev => [...new Set([...prev, skillName])]);
       }
     } catch (err) {
-      console.error("Gagal menambahkan ke target pembelajaran:", err)
-      showNotification(err.response?.data?.message || "Gagal menambahkan skill.", "error")
+      console.error("Gagal menambahkan skill ke pathway:", err);
+      showNotification(err.response?.data?.message || "Gagal menambahkan skill.", "error");
+    }
+  };
+  const handleAnalyze = async () => {
+    const hasCV = !!selectedFile || skills.length > 0 || extractedSkills.length > 0
+    const hasGithub = !!githubUrl.trim()
+
+    if (!hasCV && !hasGithub) {
+      showNotification("Silakan unggah dokumen CV atau isi tautan GitHub repository terlebih dahulu.", "error")
+      return
+    }
+
+    try {
+      setLoading(true)
+      clearPreviousResults()
+
+      const actualUserId = user?.uid || user?.id || (typeof storedUser === "string" ? JSON.parse(storedUser)?.uid : storedUser?.uid)
+      let completedStarredSkills = []
+
+      if (actualUserId) {
+        try {
+          const pathwayResponse = await api.get(`/pathway/${actualUserId}`)
+          const dataArray = Array.isArray(pathwayResponse.data) ? pathwayResponse.data : (pathwayResponse.data?.data || [])
+          completedStarredSkills = dataArray.filter(item => item?.status === "completed").map(item => item?.skill_name)
+          setPathwayCompletedSkills(completedStarredSkills)
+        } catch (pe) { console.error(pe) }
+      }
+      
+      // Skenario A: Ada CV
+      if (hasCV) {
+        const baseSkills = selectedFile ? skills : extractedSkills
+        const finalSkillsPayload = [...new Set([...baseSkills, ...completedStarredSkills])]
+        let cvResponse
+
+        if (selectedFile) {
+          cvResponse = await uploadCV({ file: selectedFile, skills: finalSkillsPayload, name: user?.name })
+        } else {
+          cvResponse = await getJobRecommendation({ name: user?.name || "Anonymous", skillset: finalSkillsPayload })
+        }
+
+        const cvRoles = cvResponse?.top_roles || []
+        setRecommendations(cvRoles)
+
+        const detected = cvResponse?.extracted_skills || baseSkills
+        setExtractedSkills(detected)
+
+        if (cvRoles.length > 0) {
+          const currentActive = [...new Set([...detected, ...finalSkillsPayload])]
+          const gaps = (cvRoles[0].recommended_skill_to_learn || [])
+            .filter(r => !currentActive.some(o => o.toLowerCase() === (typeof r === "object" ? r.skill.toLowerCase() : r.toLowerCase())))
+            .map(s => typeof s === "object" ? s.skill : s)
+          
+          if (gaps.length > 0) {
+            setRoadmapLoading(true)
+            const rData = await fetchSpecificRoadmap(gaps)
+            setRoadmap(rData)
+            setRoadmapLoading(false)
+          }
+        }
+      }
+
+      // Skenario B: Ada GitHub
+      if (hasGithub) {
+        const response = await api.post("/document/github", { github_url: githubUrl.trim() })
+        const gitData = response.data?.data || response.data
+        const gitRoles = gitData?.top_roles || gitData?.recommendations || []
+        
+        setGithubRecommendations(gitRoles)
+
+        if (gitRoles.length > 0) {
+          const gitExtracted = gitData?.extracted_skills || gitData?.skills || []
+          const gitGaps = (gitRoles[0].recommended_skill_to_learn || [])
+            .filter(r => !gitExtracted.some(o => o.toLowerCase() === (typeof r === "object" ? r.skill.toLowerCase() : r.toLowerCase())))
+            .map(s => typeof s === "object" ? s.skill : s)
+
+          if (gitGaps.length > 0) {
+            const gitRData = await fetchSpecificRoadmap(gitGaps)
+            setGithubRoadmap(gitRData)
+          }
+        }
+      }
+
+      showNotification("AI Analysis berhasil memetakan kompetensi!", "success")
+    } catch (error) {
+      console.error(error)
+      showNotification(error.response?.data?.message || "Gagal memproses rekomendasi.", "error")
+    } finally {
+      setLoading(false)
     }
   }
 
-  const handleAnalyze = async () => {
-    try {
-      if (selectedFile) {
-        setExtractedSkills([]);
-      }
-      setLoading(true);
-
-      const actualUserId = user?.uid || (typeof storedUser === "string" ? JSON.parse(storedUser)?.uid : storedUser?.uid);
-      let completedStarredSkills = [];
-
-      // 1. Ambil target pembelajaran skill berstatus completed dari profile
-      if (actualUserId) {
-        try {
-          const pathwayResponse = await api.get(`/pathway/${actualUserId}`);
-          const dataArray = Array.isArray(pathwayResponse.data)
-            ? pathwayResponse.data
-            : (pathwayResponse.data?.data || []);
-
-          completedStarredSkills = dataArray
-            .filter(item => item?.status === "completed")
-            .map(item => item?.skill_name);
-
-          setPathwayCompletedSkills(completedStarredSkills);
-        } catch (pathwayErr) {
-          console.error("Gagal mengambil completed starred skills:", pathwayErr);
-        }
-      }
-
-      // 2. Tentukan Payload Skill Gabungan
-      const baseSkills = selectedFile ? skills : extractedSkills;
-      const finalSkillsPayload = [...new Set([...baseSkills, ...completedStarredSkills])];
-
-      let responseData;
-
-      if (selectedFile) {
-        // Jalur A: Upload CV Baru (Otomatis simpan history oleh Backend)
-        responseData = await uploadCV({ file: selectedFile, skills: finalSkillsPayload, name: user?.name });
-      } else {
-        // Jalur B: Pindah Page & Analyze Ulang (Backend tidak simpan history secara otomatis)
-        responseData = await getJobRecommendation({ name: user?.name || "Anonymous", skillset: finalSkillsPayload });
-
-        // 💡 SOLUSI FRONTLINE: Jika backend menyediakan endpoint save history manual, tembak di sini.
-        // Jika tidak ada, kamu bisa meminta teman backend untuk menyamakan logic getJobRecommendation 
-        // agar tetap mengeksekusi query INSERT ke tabel progress tracker mereka.
-        try {
-          // Contoh jika ada endpoint save history manual:
-          // await api.post('/history/progress', { userId: actualUserId, skillset: finalSkillsPayload, top_roles: responseData?.top_roles });
-
-          console.log("Analyze kedua berhasil dipicu, pastikan BE mengizinkan penulisan log dari endpoint ini.");
-        } catch (histErr) {
-          console.error("Gagal menyimpan log history manual:", histErr);
-        }
-      }
-
-      const detectedSkills = responseData?.extracted_skills && responseData.extracted_skills.length > 0
-        ? responseData.extracted_skills
-        : baseSkills;
-
-      const recommendedRoles = responseData?.top_roles || [];
-      setExtractedSkills(detectedSkills);
-      setRecommendations(recommendedRoles);
-
-      if (recommendedRoles.length > 0) {
-        const primaryRole = recommendedRoles[0];
-        const totalSkillsToLearn = primaryRole.recommended_skill_to_learn || [];
-        const currentActiveSkills = [...new Set([...detectedSkills, ...finalSkillsPayload])];
-
-        const computedGaps = totalSkillsToLearn
-          .filter((recSkill) => !currentActiveSkills.some((ownSkill) => ownSkill.toLowerCase() === (typeof recSkill === "object" ? recSkill.skill.toLowerCase() : recSkill.toLowerCase())))
-          .map((s) => (typeof s === "object" ? s.skill : s));
-
-        if (computedGaps.length > 0) {
-          await handleFetchRoadmap(computedGaps);
-        }
-      }
-    } catch (error) {
-      console.error("ANALYZE ERROR:", error);
-      showNotification("Failed to generate AI recommendation", "error");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleFetchJobs = async () => {
-    const activeSkills = extractedSkills.length > 0 ? extractedSkills : skills
+    const activeSkills = [...new Set([
+      ...extractedSkills, 
+      ...skills, 
+      ...(githubRecommendations[0]?.user_skill?.map(s => s.skill) || [])
+    ])]
+
     if (activeSkills.length === 0) {
-      showNotification("Silakan masukkan skill atau lakukan analisis CV terlebih dahulu.", "error")
+      showNotification("Silakan lakukan analisis profil terlebih dahulu.", "error")
       return
     }
     try {
       setJobLoading(true)
       setJobRecommendations([])
       const response = await api.post("/jobs/recommendations", { skillset: activeSkills })
-      const result = response.data
-      if (result && (result.status === "success" || result.status === "ok")) {
-        setJobRecommendations(result.data.jobs || [])
+      if (response.data && (response.data.status === "success" || response.data.status === "ok")) {
+        setJobRecommendations(response.data.data?.jobs || response.data.jobs || [])
         setTimeout(() => { jobRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }) }, 100)
-      } else {
-        showNotification(`Gagal memuat lowongan: ${result?.message || "Error internal server"}`, "error")
       }
-    } catch (jobError) {
-      showNotification(jobError.response?.data?.message || "Terjadi kesalahan koneksi ke server loker.", "error")
-    } finally {
-      setJobLoading(false)
-    }
+    } catch (err) { console.error(err) } finally { setJobLoading(false) }
   }
 
   return (
     <div className="w-full max-w-none space-y-12 relative">
-      {/* HEADER */}
-      <header className="flex flex-col md:flex-row md:justify-between md:items-end gap-4">
-        <div className="w-full">
-          <h3 className="text-indigo-500 font-semibold text-sm tracking-widest uppercase mb-2 block">
-            Insights Engine
-          </h3>
-          <p className="text-slate-500 mt-3">Discover your ideal career path powered by AI analysis.</p>
-        </div>
+      <header>
+        <h3 className="text-indigo-500 font-semibold text-sm tracking-widest uppercase mb-2 block">Insights Engine</h3>
+        <p className="text-slate-500 mt-1">Discover your ideal career path powered by AI analysis.</p>
       </header>
 
-      {/* CONTENT PANEL INPUT */}
-      <div className="grid grid-cols-12 gap-6">
-        <div className="col-span-12 space-y-4">
-          <InputSkill
-            handleAnalyze={handleAnalyze}
-            skills={skills}
-            loading={loading}
-            handleFileChange={handleFileChange}
-            handleAddSkill={handleAddSkill}
-            fileName={fileName}
-            newSkill={newSkill}
-            setNewSkill={setNewSkill}
-            handleRemoveSkill={handleRemoveSkill}
-            handleRemoveFile={handleRemoveFile}
-          />
-        </div>
+      {/* INPUT SKILL SEKARANG MENAMPUNG SELEURUH LOGIKA INPUT DENGAN SATU TOMBOL */}
+      <div className="space-y-6">
+        <InputSkill
+          handleAnalyze={handleAnalyze}
+          skills={skills}
+          loading={loading}
+          handleFileChange={handleFileChange}
+          handleAddSkill={handleAddSkill}
+          fileName={fileName}
+          newSkill={newSkill}
+          setNewSkill={setNewSkill}
+          handleRemoveSkill={handleRemoveSkill}
+          handleRemoveFile={handleRemoveFile}
+          githubUrl={githubUrl}
+          setGithubUrl={setGithubUrl}
+        />
+      </div>
 
-        {/* HASIL ANALISIS ENGINE */}
-        {recommendations.length > 0 && (
-          <div ref={resultRef} className="col-span-12 mt-6 scroll-mt-24 space-y-12">
-            <div className="space-y-6">
-              <div className="mb-4">
-                <h3 className="text-xl font-bold">Recommended Career Paths</h3>
-                <p className="text-sm text-slate-500">Matches found based on your AI analysis</p>
+      {/* ================= OUTPUT INTERFACE ================= */}
+      {(recommendations.length > 0 || githubRecommendations.length > 0) && (
+        <div ref={resultRef} className="col-span-12 mt-6 scroll-mt-24 space-y-12">
+          
+          {/* BLOK A: DATA CV */}
+          {recommendations.length > 0 && (
+            <div className="space-y-6 border-b border-slate-100 pb-12 animate-in fade-in duration-500">
+              <div className="border-l-4 border-indigo-600 pl-3">
+                <h3 className="text-lg font-bold text-slate-900">Hasil Rekomendasi Berdasarkan CV</h3>
+                <p className="text-xs text-slate-500">Analisis kecocokan profil resume dokumen Anda</p>
               </div>
 
-              {/* MANGGIL SUB COMPONENT 1: DETECTED SKILLS */}
               <DetectedSkills
                 extractedSkills={[...new Set([...extractedSkills, ...pathwayCompletedSkills])]}
                 roadmap={roadmap}
               />
 
-              {/* MANGGIL SUB COMPONENT 2: CAREER PATH CARD */}
               <CareerPathCard
                 topRole={topRole}
                 activeTab={activeTab}
@@ -351,69 +395,104 @@ function Dashboard() {
                 hasAnimated={hasAnimated}
                 roadmapLoading={roadmapLoading}
                 roadmap={roadmap}
-                handleSaveSkillToPathway={handleSaveSkillToPathway}
+                handleSaveSkillToPathway={(name) => handleSaveSkillToPathway(name, topRole?.role)}
               />
 
-              {/* PATH ALTERNATIF */}
               {activeTab === "general" && otherRoles.length > 0 && (
-                <div className="space-y-4 pt-4 animate-in fade-in duration-500">
-                  <div>
-                    <h4 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Alternative Career Paths</h4>
-                    <p className="text-xs text-slate-400">Pilihan karier lain yang juga cocok dengan kualifikasimu</p>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+                <div className="space-y-4 pt-2">
+                  <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Alternative Career Paths (CV)</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {otherRoles.map((item, i) => (
-                      <div key={i} className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-indigo-100 transition-all flex flex-col min-w-0">
-                        <div className="flex items-start justify-between gap-3 mb-4">
-                          <div className="min-w-0">
-                            <h4 className="font-bold text-slate-900 text-base break-words">{item.role}</h4>
-                            <p className="text-xs text-slate-400 mt-1">Alternative path</p>
-                          </div>
-                          <span className="shrink-0 text-xs font-semibold px-2.5 py-1 bg-slate-50 text-slate-600 rounded-full">
-                            {(item.confidence * 100).toFixed(0)}%
-                          </span>
+                      <div key={i} className="bg-white border border-slate-100 rounded-xl p-4 shadow-xs">
+                        <div className="flex justify-between items-start mb-2">
+                          <h5 className="font-bold text-slate-900 text-sm">{item.role}</h5>
+                          <span className="text-xs px-2 py-0.5 bg-slate-50 rounded-full font-medium">{(item.confidence * 100).toFixed(0)}%</span>
                         </div>
-                        <div className="flex-1">
-                          <SkillBadge skills={item.recommended_skill_to_learn?.slice(0, 8) || []} ai={true} />
-                        </div>
+                        <SkillBadge skills={item.recommended_skill_to_learn?.slice(0, 5) || []} ai={true} />
                       </div>
                     ))}
                   </div>
                 </div>
               )}
             </div>
+          )}
 
-            {/* TRIGGER TOMBOL JOBS */}
-            <div className="flex flex-col sm:flex-row items-center gap-4 pt-2">
-              <button
-                onClick={handleFetchJobs}
-                disabled={jobLoading || loading}
-                className="w-full sm:w-auto bg-white border-2 border-indigo-600 text-indigo-600 font-bold px-6 py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-indigo-50 transition-all disabled:opacity-50 disabled:pointer-events-none shadow-sm"
-              >
-                {jobLoading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Mencari Lowongan...</span>
-                  </>
-                ) : (
-                  <>
-                    <Search className="w-4 h-4" />
-                    <span>Cari Rekomendasi Lowongan Pekerjaan</span>
-                  </>
-                )}
-              </button>
+      
+          {/* BLOK B: DATA REPO GITHUB */}
+          {githubRecommendations.length > 0 && (
+            <div className="space-y-6 pt-4 animate-in fade-in duration-500">
+              <div className="border-l-4 border-emerald-600 pl-3">
+                <h3 className="text-lg font-bold text-slate-900">Hasil Rekomendasi Berdasarkan GitHub</h3>
+                <p className="text-xs text-slate-500">Analisis tumpukan teknologi repositori proyek kode</p>
+              </div>
+
+              {/* 💡 SOLUSI AMAN: Kembalikan ke format Array String murni agar tidak memicu sk.toLowerCase() crash */}
+              <DetectedSkills
+                extractedSkills={[
+                  ...new Set([
+                    // 1. Ekstrak nama skill string dari user_skill GitHub
+                    ...(githubTopRole?.user_skill || []).map(s => typeof s === "object" ? s.skill : s),
+                    // 2. Gabungkan langsung dengan completed track skill string dari database
+                    ...(pathwayCompletedSkills || [])
+                  ])
+                ]}
+                roadmap={githubRoadmap}
+              />
+
+              <CareerPathCard
+                topRole={githubTopRole}
+                activeTab={activeTab}
+                setActiveTab={setActiveTab}
+                narrativeText={githubNarrativeText}
+                hasAnimated={hasAnimated}
+                roadmapLoading={loading}
+                roadmap={githubRoadmap}
+                handleSaveSkillToPathway={(name) => handleSaveSkillToPathway(name, githubTopRole?.role)}
+              />
+
+              {activeTab === "general" && githubOtherRoles.length > 0 && (
+                <div className="space-y-4 pt-2">
+                  <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Alternative Career Paths (GitHub)</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {githubOtherRoles.map((item, i) => (
+                      <div key={i} className="bg-white border border-slate-100 rounded-xl p-4 shadow-xs">
+                        <div className="flex justify-between items-start mb-2">
+                          <h5 className="font-bold text-slate-900 text-sm">{item.role}</h5>
+                          <span className="text-xs px-2 py-0.5 bg-slate-50 rounded-full font-medium">{(item.confidence * 100).toFixed(0)}%</span>
+                        </div>
+                        <SkillBadge skills={item.recommended_skill_to_learn?.slice(0, 5) || []} ai={true} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
+          )}
+
+          <div className="flex flex-col sm:flex-row items-center gap-4 pt-6 border-t border-slate-100">
+            <button
+              onClick={handleFetchJobs}
+              disabled={jobLoading || loading}
+              className="w-full sm:w-auto bg-white border-2 border-indigo-600 text-indigo-600 font-bold px-6 py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-indigo-50 transition-all shadow-xs"
+            >
+              {jobLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Mencari Lowongan...</span>
+                </>
+              ) : (
+                <>
+                  <Search className="w-4 h-4" />
+                  <span>Cari Rekomendasi Lowongan Pekerjaan</span>
+                </>
+              )}
+            </button>
           </div>
-        )}
+        </div>
+      )}
 
-        {/* MANGGIL SUB COMPONENT 3: JOB OPENINGS GRID */}
-        <JobRecommendations jobRecommendations={jobRecommendations} jobLoading={jobLoading} jobRef={jobRef} />
-      </div>
-
-      {/* FOOTER */}
+      <JobRecommendations jobRecommendations={jobRecommendations} jobLoading={jobLoading} jobRef={jobRef} />
       <footer className="text-xs text-slate-500 pt-6 border-t">© 2026 SkillsGap AI Platform</footer>
-
-      {/* MANGGIL SUB COMPONENT 4: TOAST NOTIFICATION */}
       <Toast toast={toast} setToast={setToast} />
     </div>
   )

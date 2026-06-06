@@ -43,9 +43,6 @@ function JobRecommendations({ jobRecommendations, jobLoading, jobRef }) {
               </div>
 
               <div className="mt-5 pt-3 border-t border-slate-50 flex items-center justify-between">
-                <span className="text-[10px] font-semibold bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full uppercase tracking-wider">
-                  Actively Hiring
-                </span>
                 {job.job_url ? (
                   <a
                     href={job.job_url}
