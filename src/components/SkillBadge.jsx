@@ -9,10 +9,7 @@ const SkillBadge = ({
   return (
     <div className="flex flex-wrap gap-2">
       {skills.map((skill, index) => {
-        // Ambil string nama skill dengan aman
         const skillName = ai ? skill?.skill : skill
-
-        // Guard clause jika skillName ternyata kosong/null agar tidak merender badge kosong
         if (!skillName) return null
 
         return (
@@ -27,11 +24,9 @@ const SkillBadge = ({
               max-w-full
             "
           >
-            {/* Menggunakan uppercase untuk singkatan tech (SQL, AWS, etc) agar lebih rapi */}
             <span className="truncate uppercase-tech-check">
               {skillName.length <= 3 ? skillName.toUpperCase() : skillName.charAt(0).toUpperCase() + skillName.slice(1)}
             </span>
-
             {!ai && (
               <button
                 type="button"
@@ -45,7 +40,6 @@ const SkillBadge = ({
                 <X className="w-3 h-3" />
               </button>
             )}
-
           </div>
         )
       })}
