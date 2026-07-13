@@ -1,19 +1,17 @@
 function DetectedSkills({ extractedSkills, roadmap }) {
   if (extractedSkills.length === 0) return null;
 
-  // 1. Map data untuk menghitung nilai persentase masing-masing skill
+  
   const skillsWithDemand = extractedSkills.map((sk, idx) => {
     const matchedItem = roadmap.find(
       (r) => r.skill.toLowerCase() === sk.toLowerCase()
     );
     const rawUrgensi = matchedItem ? parseInt(matchedItem.skor_urgensi) : null;
 
-    // Tentukan angka persentase untuk keperluan sorting
     let demandValue = 0;
     if (!isNaN(rawUrgensi) && rawUrgensi !== null) {
       demandValue = rawUrgensi;
     } else {
-      // Fallback nilai jika tidak ada di roadmap (mengikuti logic asli)
       demandValue = 85 + (idx % 3) * 5;
     }
 
@@ -24,7 +22,7 @@ function DetectedSkills({ extractedSkills, roadmap }) {
     };
   });
 
-  // 2. Urutkan array berdasarkan demandValue dari yang terbesar (descending)
+  //sort persentase descending
   skillsWithDemand.sort((a, b) => b.demandValue - a.demandValue);
 
   return (
@@ -33,10 +31,9 @@ function DetectedSkills({ extractedSkills, roadmap }) {
         Detected Core Skills & Market Demand ({skillsWithDemand.length})
       </p>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-        {/* 3. Render data yang sudah diurutkan */}
         {skillsWithDemand.map((item, idx) => (
           <div
-            key={idx} // Idealnya gunakan item.name sebagai key jika unik (key={item.name})
+            key={idx}
             className="bg-white border border-slate-100 rounded-xl p-3 shadow-sm flex flex-col justify-between"
           >
             <span

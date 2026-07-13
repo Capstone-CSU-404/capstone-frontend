@@ -4,7 +4,7 @@ import { Loader2, Search } from "lucide-react"
 import { getJobRecommendation, uploadCV } from "../services/jobRole"
 import api from "../services/api"
 
-// IMPORT COMPONENTS
+//component
 import InputSkill from "../components/InputSkill"
 import SkillBadge from "../components/SkillBadge"
 import Toast from "../components/Toast"
@@ -16,7 +16,7 @@ function Dashboard() {
   const storedUser = JSON.parse(localStorage.getItem("user"))
   const user = storedUser?.data?.user
 
-  // ================= STATE =================
+  
   const [toast, setToast] = useState({ show: false, message: "", type: "success" })
   const [fileName, setFileName] = useState(() => sessionStorage.getItem("dashboard_fileName") || "")
   const [skills, setSkills] = useState(() => JSON.parse(sessionStorage.getItem("dashboard_skills")) || [])
@@ -35,7 +35,7 @@ function Dashboard() {
 
   const [recommendations, setRecommendations] = useState(() => JSON.parse(sessionStorage.getItem("dashboard_recommendations")) || [])
 
-  // STATE UNTUK KEBUTUHAN DATA GITHUB
+  
   const [githubUrl, setGithubUrl] = useState(() => sessionStorage.getItem("dashboard_githubUrl") || "")
   const [githubRecommendations, setGithubRecommendations] = useState(() => JSON.parse(sessionStorage.getItem("dashboard_githubRecommendations")) || [])
   const [githubNarrativeText, setGithubNarrativeText] = useState(() => sessionStorage.getItem("dashboard_githubNarrativeText") || "")
@@ -55,7 +55,7 @@ function Dashboard() {
     setTimeout(() => { setToast({ show: false, message: "", type: "success" }) }, 3000)
   }
 
-  // ================= EFFECTS FOR PERSISTENCE =================
+  
   useEffect(() => { sessionStorage.setItem("dashboard_skills", JSON.stringify(skills)) }, [skills])
   useEffect(() => { sessionStorage.setItem("dashboard_fileName", fileName) }, [fileName])
   useEffect(() => {
@@ -72,7 +72,7 @@ function Dashboard() {
   useEffect(() => { sessionStorage.setItem("dashboard_githubNarrativeText", githubNarrativeText) }, [githubNarrativeText])
   useEffect(() => { sessionStorage.setItem("dashboard_githubRoadmap", JSON.stringify(githubRoadmap)) }, [githubRoadmap])
 
-  // Efek Narasi CV
+  //efek ketik CV
   useEffect(() => {
     if (recommendations.length > 0) {
       if (resultRef.current && !narrativeText) {
@@ -89,7 +89,7 @@ function Dashboard() {
     }
   }, [recommendations, narrativeText])
 
-  // Efek Narasi GitHub
+  //efek ketik github
   useEffect(() => {
     if (githubRecommendations.length > 0) {
       if (resultRef.current && !recommendations.length && !githubNarrativeText) {
@@ -187,13 +187,12 @@ function Dashboard() {
     return []
   }
 
-  // 🛠️ RE-FIX: Kunci ID User langsung ke sumber mentah LocalStorage agar anti-meleset
+  
   const handleSaveSkillToPathway = async (skillName, targetedRole) => {
-    // Ambil ulang data mentah langsung dari localStorage saat fungsi dieksekusi
-    const rawStorage = localStorage.getItem("user");
+      const rawStorage = localStorage.getItem("user");
     const parsedStorage = rawStorage ? JSON.parse(rawStorage) : null;
     
-    // Cari ID dengan menyisir seluruh kemungkinan hirarki struktur auth token kamu
+    
     const actualUserId = 
       parsedStorage?.data?.user?.uid || 
       parsedStorage?.data?.user?.id || 
@@ -204,13 +203,13 @@ function Dashboard() {
       user?.uid || 
       user?.id;
 
-    // Tentukan fallback target role jika tidak terdefinisi dari parameter komponen
+    
     const finalRole = targetedRole || githubTopRole?.role || topRole?.role || "General Path";
 
-    console.log("=== DEBUG TRACK SKILL ===");
-    console.log("ID User Terdeteksi:", actualUserId);
-    console.log("Nama Skill:", skillName);
-    console.log("Target Role:", finalRole);
+    // console.log("=== DEBUG TRACK SKILL ===");
+    // console.log("ID User Terdeteksi:", actualUserId);
+    // console.log("Nama Skill:", skillName);
+    // console.log("Target Role:", finalRole);
 
     if (!actualUserId) {
       showNotification("Sesi user tidak valid atau kedaluwarsa. Silakan refresh atau re-login.", "error");
@@ -219,7 +218,7 @@ function Dashboard() {
 
     try {
       const response = await api.post("/pathway", {
-        user_id: actualUserId, // Format snake_case untuk backend
+        user_id: actualUserId,
         skill_name: skillName,
         target_role: finalRole
       });
@@ -260,7 +259,7 @@ function Dashboard() {
         } catch (pe) { console.error(pe) }
       }
       
-      // Skenario A: Ada CV
+      //jika ada CV
       if (hasCV) {
         const baseSkills = selectedFile ? skills : extractedSkills
         const finalSkillsPayload = [...new Set([...baseSkills, ...completedStarredSkills])]
@@ -293,7 +292,7 @@ function Dashboard() {
         }
       }
 
-      // Skenario B: Ada GitHub
+      //jika ada github
       if (hasGithub) {
         const response = await api.post("/document/github", { github_url: githubUrl.trim() })
         const gitData = response.data?.data || response.data
@@ -351,8 +350,6 @@ function Dashboard() {
         <h3 className="text-indigo-500 font-semibold text-sm tracking-widest uppercase mb-2 block">Insights Engine</h3>
         <p className="text-slate-500 mt-1">Discover your ideal career path powered by AI analysis.</p>
       </header>
-
-      {/* INPUT SKILL SEKARANG MENAMPUNG SELEURUH LOGIKA INPUT DENGAN SATU TOMBOL */}
       <div className="space-y-6">
         <InputSkill
           handleAnalyze={handleAnalyze}
@@ -370,11 +367,10 @@ function Dashboard() {
         />
       </div>
 
-      {/* ================= OUTPUT INTERFACE ================= */}
       {(recommendations.length > 0 || githubRecommendations.length > 0) && (
         <div ref={resultRef} className="col-span-12 mt-6 scroll-mt-24 space-y-12">
           
-          {/* BLOK A: DATA CV */}
+          {/* card CV */}
           {recommendations.length > 0 && (
             <div className="space-y-6 border-b border-slate-100 pb-12 animate-in fade-in duration-500">
               <div className="border-l-4 border-indigo-600 pl-3">
@@ -418,7 +414,7 @@ function Dashboard() {
           )}
 
       
-          {/* BLOK B: DATA REPO GITHUB */}
+          {/* card github */}
           {githubRecommendations.length > 0 && (
             <div className="space-y-6 pt-4 animate-in fade-in duration-500">
               <div className="border-l-4 border-emerald-600 pl-3">
@@ -426,13 +422,10 @@ function Dashboard() {
                 <p className="text-xs text-slate-500">Analisis tumpukan teknologi repositori proyek kode</p>
               </div>
 
-              {/* 💡 SOLUSI AMAN: Kembalikan ke format Array String murni agar tidak memicu sk.toLowerCase() crash */}
               <DetectedSkills
                 extractedSkills={[
                   ...new Set([
-                    // 1. Ekstrak nama skill string dari user_skill GitHub
                     ...(githubTopRole?.user_skill || []).map(s => typeof s === "object" ? s.skill : s),
-                    // 2. Gabungkan langsung dengan completed track skill string dari database
                     ...(pathwayCompletedSkills || [])
                   ])
                 ]}

@@ -17,7 +17,7 @@ function CareerPathCard({
   return (
     <div className="w-full bg-white border border-slate-100 rounded-2xl p-0 shadow-sm hover:shadow-md hover:border-indigo-100 transition-all flex flex-col min-w-0 overflow-hidden">
       
-      {/* HEADER CARD */}
+      {/* header */}
       <div className="p-6 pb-4 border-b border-slate-50 flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h4 className="font-bold text-slate-900 text-xl break-words">{topRole.role}</h4>
@@ -28,7 +28,7 @@ function CareerPathCard({
         </span>
       </div>
 
-      {/* NAVIGASI TAB */}
+      {/* tabs */}
       <div className="flex bg-slate-50/70 px-6 border-b border-slate-100">
         <button
           onClick={() => setActiveTab("general")}
@@ -52,7 +52,7 @@ function CareerPathCard({
         </button>
       </div>
 
-      {/* KONTEN TAB */}
+      {/* content */}
       <div className="p-6 flex-1">
         {activeTab === "general" ? (
           <div className="space-y-6 animate-in fade-in duration-200">
@@ -101,7 +101,6 @@ function CareerPathCard({
                           </div>
                         </div>
 
-                        {/* BUTTON STAR GRAY & HOVER GOLDEN YELLOW */}
                         <button
                           onClick={() => handleSaveSkillToPathway(step.skill)}
                           className="p-1.5 rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-amber-500 hover:border-amber-300 transition-colors shadow-sm ml-2 group/star"

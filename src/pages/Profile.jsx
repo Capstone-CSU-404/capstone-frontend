@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Mail, Star, Loader2, Code2, CheckCircle, Circle, Trash2, RotateCcw } from "lucide-react"; 
 import { useLocation } from "react-router-dom";
 import api from "../services/api";
-import ConfirmModal from "../components/ConfirmModal"; // 1. IMPORT MODAL BARU DI SINI 👈
+import ConfirmModal from "../components/ConfirmModal";
 
 function Profile() {
   const location = useLocation(); 
@@ -12,10 +12,9 @@ function Profile() {
   const [isLoading, setIsLoading] = useState(true);
   const [isActionLoading, setIsActionLoading] = useState(false);
 
-  // 2. STATE UNTUK CONFIG MODAL TAILWIND UI
   const [modalConfig, setModalConfig] = useState({
     isOpen: false,
-    type: "", // "delete_single" atau "reset_all"
+    type: "",
     title: "",
     message: "",
     targetId: null
@@ -58,7 +57,6 @@ function Profile() {
     } catch (err) { console.error(err); }
   };
 
-  // 3. FUNGSI UNTUK MEMBUKA MODAL
   const triggerDeleteModal = (pathwayId, skillName) => {
     setModalConfig({
       isOpen: true,
@@ -83,7 +81,6 @@ function Profile() {
     setModalConfig(prev => ({ ...prev, isOpen: false }));
   };
 
-  // 4. EKSEKUSI PENGHAPUSAN DI BACKEND
   const handleConfirmAction = async () => {
     setIsActionLoading(true);
     try {
@@ -109,7 +106,6 @@ function Profile() {
 
   return (
     <div className="space-y-8 max-w-5xl mx-auto">
-      {/* --- UI PROFILE HEADER & EXTRACTED SKILLS TETAP SAMA --- */}
       <section className="bg-white rounded-2xl p-8 flex flex-col sm:flex-row items-center gap-6 shadow-sm border border-slate-100">
         <div className="relative shrink-0">
           <img src={user?.picture || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150"} className="w-24 h-24 rounded-2xl object-cover ring-4 ring-indigo-50" alt="Avatar"/>
@@ -146,7 +142,6 @@ function Profile() {
                 <h3 className="text-lg font-bold text-slate-800">Target Pembelajaran</h3>
               </div>
 
-              {/* TRIGGER MODAL RESET ALL */}
               {starredSkills.length > 0 && (
                 <button onClick={triggerResetModal} className="flex items-center justify-center gap-1.5 px-4 py-2 bg-rose-50 text-rose-600 hover:bg-rose-100 text-xs font-bold rounded-xl border border-rose-200/60">
                   <RotateCcw className="w-3.5 h-3.5" /><span>Reset All Checklist</span>
@@ -165,7 +160,6 @@ function Profile() {
                         {isCompleted ? "✓ Done" : "Mark Done"}
                       </button>
 
-                      {/* TRIGGER MODAL HAPUS SATUAN */}
                       <button onClick={() => triggerDeleteModal(item.id, skillName)} className="p-1.5 rounded-lg bg-slate-50 text-slate-400 hover:text-rose-600 border border-slate-100">
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -179,9 +173,6 @@ function Profile() {
         </>
       )}
 
-      {/* ======================================================================= */}
-      {/* 5. PEMANGGILAN KOMPONENT MODAL CUSTOM YANG SUDAH DIPISAH FILENYA       */}
-      {/* ======================================================================= */}
       <ConfirmModal
         isOpen={modalConfig.isOpen}
         onClose={closeModal}

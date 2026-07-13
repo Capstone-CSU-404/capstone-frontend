@@ -5,7 +5,6 @@ import api from "../services/api";
 import { useNavigate, Navigate } from "react-router-dom";
 import { Sparkles, Loader2 } from "lucide-react";
 
-// KOMPONEN LOGO CUSTOM SVG (AI Skill & Pathway Icon)
 const AppLogo = ({ className = "w-10 h-10" }) => (
   <div className={`flex items-center justify-center bg-indigo-500/10 border border-indigo-500/20 rounded-xl ${className}`}>
     <svg className="w-6 h-6 text-indigo-400" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -53,7 +52,6 @@ const Login = () => {
   return (
     <div className="min-h-screen grid grid-cols-1 lg:grid-cols-12 bg-white font-sans antialiased selection:bg-indigo-500 selection:text-white">
 
-      {/* SISI KIRI: Brand Hero (Desktop View - Tetap Tema Gelap Premium #0b0f19) */}
       <div className="hidden lg:flex lg:col-span-5 bg-[#0b0f19] relative overflow-hidden flex-col justify-between p-12 border-r border-slate-800/20">
         {/* Glow Effect */}
         <div className="absolute top-[-10%] left-[-10%] w-[70%] h-[70%] bg-indigo-500/10 rounded-full blur-[100px] pointer-events-none" />
@@ -94,13 +92,10 @@ const Login = () => {
         </p>
       </div>
 
-      {/* SISI KANAN: Latar Belakang Putih Bersih */}
       <div className="col-span-1 lg:col-span-7 flex flex-col justify-center items-center p-6 sm:p-12 bg-white">
 
-        {/* 🌟 FORM CARD: Menggunakan Indigo Gelap Premium (bg-indigo-950), Berdimensi Tinggi */}
         <div className="max-w-md w-full bg-indigo-950 rounded-2xl border border-indigo-900/60 p-8 sm:p-10 shadow-[0_25px_50px_-12px_rgba(30,27,75,0.25)] transition-all">
 
-          {/* Logo Tampilan Mobile */}
           <div className="text-center lg:hidden mb-10">
             <div className="inline-flex items-center justify-center mb-4">
               <AppLogo className="w-12 h-12" />
@@ -119,7 +114,7 @@ const Login = () => {
             <p className="text-indigo-200/70 text-sm mt-1.5">Sign in with your Google account to get started</p>
           </div>
 
-          {/* Google Button - Dipercerah Kontrasnya di dalam Card Gelap */}
+          {/* Google Button */}
           <button
             onClick={handleGoogleLogin}
             disabled={isLoading}

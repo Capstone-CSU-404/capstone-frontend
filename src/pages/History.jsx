@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Clock, Briefcase, Calendar, Loader2, AlertCircle, Eye, Star, CheckCircle } from "lucide-react";
-import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from "@headlessui/react"; // 👈 Headless UI Imports
+import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from "@headlessui/react";
 import api from "../services/api";
 
 function History() {

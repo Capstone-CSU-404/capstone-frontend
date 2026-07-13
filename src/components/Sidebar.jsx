@@ -40,7 +40,7 @@ function Sidebar({ isOpen, setIsOpen }) {
 
   return (
     <>
-      {/* OVERLAY MOBILE: Hanya aktif di layar kecil (<768px) jika sedang terbuka */}
+      {/* overlay mobile */}
       {isOpen && (
         <div
           onClick={() => setIsOpen(false)}
@@ -48,15 +48,13 @@ function Sidebar({ isOpen, setIsOpen }) {
         />
       )}
 
-      {/* SIDEBAR PANEL */}
       <aside
         className={cn(
           "fixed top-0 left-0 z-50 h-screen w-64 bg-slate-950 flex flex-col py-8 border-r border-slate-900 transition-transform duration-300 ease-in-out",
-          // 💡 SOLUSI KUNCI: Di HP mengikuti isOpen, di desktop juga menyembunyikan diri jika isOpen = false
           isOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        {/* TOMBOL CLOSE KHUSUS HP */}
+
         <button
           onClick={() => setIsOpen(false)}
           className="absolute top-4 right-4 text-slate-400 hover:text-white md:hidden p-2 rounded-lg hover:bg-slate-900"
@@ -64,7 +62,7 @@ function Sidebar({ isOpen, setIsOpen }) {
           <X className="w-5 h-5" />
         </button>
 
-        {/* BRAND LOGO */}
+        
         <div className="px-6 mb-10 mt-4 flex items-start gap-3">
           <AppLogo />
           <div className="flex flex-col">
@@ -77,7 +75,7 @@ function Sidebar({ isOpen, setIsOpen }) {
           </div>
         </div>
 
-        {/* MENU NAVIGASI */}
+        {/* navigasi */}
         <nav className="flex-1 space-y-1.5 pr-4">
           {navItems.map((item) => (
             <NavLink
@@ -101,7 +99,7 @@ function Sidebar({ isOpen, setIsOpen }) {
           ))}
         </nav>
 
-        {/* UTILITY LOGOUT */}
+        
         <div className="mt-auto border-t border-slate-900 pt-4 pr-4">
           <button
             onClick={handleLogout}

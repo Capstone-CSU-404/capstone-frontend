@@ -1,11 +1,10 @@
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react'
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline'
-import { Loader2 } from 'lucide-react' // Menggunakan spinner loading yang sudah ada di aplikasimu
+import { Loader2 } from 'lucide-react' 
 
 export default function ConfirmModal({ isOpen, onClose, onConfirm, title, message, isLoading }) {
   return (
     <Dialog open={isOpen} onClose={onClose} className="relative z-50">
-      {/* Backdrop overlay */}
       <DialogBackdrop
         transition
         className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in"
@@ -19,11 +18,9 @@ export default function ConfirmModal({ isOpen, onClose, onConfirm, title, messag
           >
             <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
               <div className="sm:flex sm:items-start">
-                {/* Icon Warning */}
                 <div className="mx-auto flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
                   <ExclamationTriangleIcon aria-hidden="true" className="h-6 w-6 text-red-600" />
                 </div>
-                {/* Konten Teks */}
                 <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
                   <DialogTitle as="h3" className="text-base font-bold text-gray-900">
                     {title}
@@ -37,7 +34,6 @@ export default function ConfirmModal({ isOpen, onClose, onConfirm, title, messag
               </div>
             </div>
             
-            {/* Action Buttons */}
             <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6 gap-2">
               <button
                 type="button"

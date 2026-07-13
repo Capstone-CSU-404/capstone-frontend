@@ -13,13 +13,12 @@ function InputSkill({
   setNewSkill,
   handleRemoveSkill,
   handleRemoveFile,
-  // 💡 PROPERTI BARU UNTUK INPUT GITHUB
   githubUrl,
   setGithubUrl
 }) {
   return (
     <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-xs space-y-6">
-      {/* SEKSI A: UPLOAD CV */}
+      {/* upload cv */}
       <div className="space-y-3">
         <label className="text-sm font-bold text-slate-900 block">
           Upload Curriculum Vitae (PDF)
@@ -55,7 +54,7 @@ function InputSkill({
         )}
       </div>
 
-      {/* 💡 SEKSI B: FIELD REPO GITHUB (PINDAH KE SINI) */}
+      {/* link github */}
       <div className="space-y-2 pt-2 border-t border-slate-50">
         <label className="text-sm font-bold text-slate-900 flex items-center gap-2">
           <FolderGit2 className="w-4 h-4 text-indigo-500" />
@@ -72,8 +71,7 @@ function InputSkill({
           className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-indigo-500 transition-all font-mono"
         />
       </div>
-
-      {/* SATU TOMBOL UTAMA START ANALYZING */}
+      
       <div className="pt-2">
         <button
           onClick={handleAnalyze}
